@@ -1,17 +1,19 @@
 import { BadRequestException, HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { SignUpDto } from './dtos/signup-dto';
 import { InjectModel } from '@nestjs/mongoose';
-import { privateDecrypt } from 'crypto';
 import { User } from './schemas/user.schema';
 import { Model } from 'mongoose';
-import { single } from 'rxjs';
 import * as bcrypt from 'bcrypt';
 import IResponseHttpApi from './interfaces/responseObject.interface';
 import { LoginDto } from './dtos/login-dto';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class AuthService {
-	constructor(@InjectModel(User.name) private UserModel: Model<User>) {}
+	constructor(
+		@InjectModel(User.name) private UserModel: Model<User>,
+		private jwtService: JwtService,
+	) {}
 
 	async createUser(userData: SignUpDto): Promise<IResponseHttpApi<string>> {
 		const { user_email, user_name, user_password } = userData;
@@ -102,7 +104,7 @@ export class AuthService {
 			);
 		}
 
-		const token = 'mocked_token_here';
+		const token = await this.generateUserTokens(user._id);
 
 		return {
 			status: HttpStatus.OK,
@@ -113,6 +115,13 @@ export class AuthService {
 				user: user_email,
 				token,
 			},
+		};
+	}
+
+	async generateUserTokens(userId): Promise<{ accessToken: string }> {
+		const accessToken: string = this.jwtService.sign({ userId }, { expiresIn: '1h' });
+		return {
+			accessToken,
 		};
 	}
 
