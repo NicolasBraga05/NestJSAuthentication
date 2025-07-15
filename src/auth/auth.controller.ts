@@ -2,6 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { AuthService } from './auth.service';
 import { SignUpDto } from './dtos/signup-dto';
 import { LoginDto } from './dtos/login-dto';
+import { RefreshTokenDto } from './dtos/refreshToken-dto';
 
 @Controller('auth')
 export class AuthController {
@@ -15,6 +16,11 @@ export class AuthController {
 	@Post('login')
 	async login(@Body() userCredentials: LoginDto) {
 		return this.authService.login(userCredentials);
+	}
+
+	@Post('refresh')
+	async refreshTokens(@Body() refreshTokenDto: RefreshTokenDto) {
+		return this.authService.refreshTokens(refreshTokenDto.refreshToken);
 	}
 
 	/* @Get()

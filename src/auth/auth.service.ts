@@ -7,11 +7,14 @@ import * as bcrypt from 'bcrypt';
 import IResponseHttpApi from './interfaces/responseObject.interface';
 import { LoginDto } from './dtos/login-dto';
 import { JwtService } from '@nestjs/jwt';
+import { RefreshToken } from './schemas/refresh-token.schema';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class AuthService {
 	constructor(
 		@InjectModel(User.name) private UserModel: Model<User>,
+		@InjectModel(RefreshToken.name) private RefreshTokenModel: Model<RefreshToken>,
 		private jwtService: JwtService,
 	) {}
 
@@ -112,17 +115,45 @@ export class AuthService {
 				success: 'Login successful!',
 			},
 			data: {
-				user: user_email,
+				user: user._id,
 				token,
 			},
 		};
 	}
 
-	async generateUserTokens(userId): Promise<{ accessToken: string }> {
+	async refreshTokens(refreshToken: string): Promise<object> {
+		const token = await this.RefreshTokenModel.findOneAndDelete({
+			token: refreshToken,
+			expiryDate: { $gte: new Date() },
+		});
+
+		if (!token) {
+			throw new HttpException(
+				{
+					status: HttpStatus.UNAUTHORIZED,
+				},
+				HttpStatus.UNAUTHORIZED,
+			);
+		}
+
+		return this.generateUserTokens(token.userId);
+	}
+
+	async generateUserTokens(userId): Promise<object> {
 		const accessToken: string = this.jwtService.sign({ userId }, { expiresIn: '1h' });
+		const refreshToken = uuidv4();
+		await this.storeRefreshToken(refreshToken, userId);
 		return {
 			accessToken,
+			refreshToken,
 		};
+	}
+
+	async storeRefreshToken(token: string, userId) {
+		const expiryDate = new Date();
+		expiryDate.setDate(expiryDate.getDate() + 30);
+
+		await this.RefreshTokenModel.create({ token, userId, expiryDate });
 	}
 
 	/* findAll() {
