@@ -45,7 +45,7 @@ Abaixo estão os principais endpoints disponíveis na API para autenticação:
 
 | Método | Rota            | Descrição                      |
 | ------ | --------------- | ------------------------------ |
-| `POST` | `/auth/signup`  | Cadastro de novo usuário       |
+| `POST` | `/auth/user`  | Cadastro de novo usuário       |
 | `POST` | `/auth/login`   | Login e geração dos tokens JWT |
 | `POST` | `/auth/refresh` | Gera novo token de acesso      |
 
@@ -67,3 +67,22 @@ Usar emojis nos commits ajuda a identificar rapidamente o propósito de cada alt
 - ✨ `feat: adicionar rota de cadastro`
 - 🐛 `fix: corrigir erro na validação do token`
 - 🔧 `chore: atualizar dependências`
+
+## ❗ Padronização de Erros
+
+Este projeto implementa uma padronização de respostas de erro utilizando um **Exception Filter global** (`AllExceptionsFilter`). Isso garante que todas as exceções da aplicação retornem um formato consistente, facilitando o tratamento no frontend ou em outras aplicações que consumam a API.
+
+### 🔄 Formato de resposta de erro
+
+Todos os erros seguem a estrutura abaixo:
+
+```json
+{
+  "status": 400,
+  "message": {
+    "errors": [
+      "Mensagem de erro aqui"
+    ]
+  }
+}
+
