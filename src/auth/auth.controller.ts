@@ -23,21 +23,25 @@ export class AuthController {
 		return this.authService.refreshTokens(refreshTokenDto.refreshToken);
 	}
 
-	/* @Get()
-	findAll() {
-		return this.authService.findAll();
+	/* 
+	@UseGuards(AuthGuard)
+	@Get()
+	findAll(@Req() req) {
+		return this.authService.findAll(userId: req.userId);
 	}
 
-	@Get(':id')
-	findOne(@Param('id') id: string) {
-		return this.authService.findOne(+id);
+	@Get('')
+	findOne(@Req() req) {
+		return this.authService.findOne(userId: req.userId);
+	}
+		
+	@UseGuards(AuthGuard)
+	@Patch('')
+	update(@Req() req, @Body() updateUserDto: UpdateAuthDto) {
+		return this.authService.update(userId: req.userId, updateUserDto);
 	}
 
-	@Patch(':id')
-	update(@Param('id') id: string, @Body() updateAuthDto: UpdateAuthDto) {
-		return this.authService.update(+id, updateAuthDto);
-	}
-
+	@UseGuards(AuthGuard)
 	@Delete(':id')
 	remove(@Param('id') id: string) {
 		return this.authService.remove(+id);
