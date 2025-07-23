@@ -9,6 +9,7 @@ import { LoginDto } from './dtos/login-dto';
 import { JwtService } from '@nestjs/jwt';
 import { RefreshToken } from './schemas/refresh-token.schema';
 import { v4 as uuidv4 } from 'uuid';
+import { UpdateUserDto } from './dtos/updateUser-dto';
 
 @Injectable()
 export class AuthService {
@@ -117,6 +118,18 @@ export class AuthService {
 			data: {
 				user: user._id,
 				token,
+			},
+		};
+	}
+
+	async update(token: string, updateAuthDto: UpdateUserDto): Promise<IResponseHttpApi<object>> {
+		return {
+			status: HttpStatus.OK,
+			message: {
+				success: 'User updated with success!',
+			},
+			data: {
+				user: updateAuthDto,
 			},
 		};
 	}
