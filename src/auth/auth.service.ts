@@ -122,7 +122,7 @@ export class AuthService {
 		};
 	}
 
-	async update(token: string, updateAuthDto: UpdateUserDto): Promise<IResponseHttpApi<object>> {
+	async update(userId: number, updateAuthDto: UpdateUserDto): Promise<IResponseHttpApi<object>> {
 		return {
 			status: HttpStatus.OK,
 			message: {
@@ -134,7 +134,7 @@ export class AuthService {
 		};
 	}
 
-	async refreshTokens(refreshToken: string): Promise<object> {
+	async refreshTokens(userId: number, refreshToken: string): Promise<object> {
 		const token = await this.RefreshTokenModel.findOneAndDelete({
 			token: refreshToken,
 			expiryDate: { $gte: new Date() },

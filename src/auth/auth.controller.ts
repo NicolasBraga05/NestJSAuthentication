@@ -85,8 +85,8 @@ export class AuthController {
 		description: 'Não autorizado',
 		schema: { example: { status: 401, message: { errors: ['Token inválido'] } } },
 	})
-	async refreshTokens(@Body() refreshTokenDto: RefreshTokenDto) {
-		return this.authService.refreshTokens(refreshTokenDto.refreshToken);
+	async refreshTokens(@Req() req, @Body() refreshTokenDto: RefreshTokenDto) {
+		return this.authService.refreshTokens(req?.userId, refreshTokenDto.refreshToken);
 	}
 
 	/* 
