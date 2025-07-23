@@ -123,6 +123,24 @@ export class AuthService {
 	}
 
 	async update(userId: number, updateAuthDto: UpdateUserDto): Promise<IResponseHttpApi<object>> {
+		const user = await this.UserModel.findById(userId);
+
+		if (!user) {
+			throw new HttpException(
+				{
+					status: HttpStatus.NOT_FOUND,
+					message: {
+						errors: ['User not found!'],
+					},
+				},
+				HttpStatus.NOT_FOUND,
+			);
+		}
+
+		const updatedUser = await this.UserModel.findByIdAndUpdate(userId, updateAuthDto, { new: true }).select(
+			'-user_password',
+		);
+
 		return {
 			status: HttpStatus.OK,
 			message: {
@@ -153,7 +171,7 @@ export class AuthService {
 	}
 
 	async generateUserTokens(userId): Promise<object> {
-		const accessToken: string = this.jwtService.sign({ userId }, { expiresIn: '1h' });
+		const accessToken: string = this.jwtService.sign({ userId }, { expiresIn: '30d' });
 		const refreshToken = uuidv4();
 		await this.storeRefreshToken(refreshToken, userId);
 		return {
@@ -164,7 +182,7 @@ export class AuthService {
 
 	async storeRefreshToken(token: string, userId) {
 		const expiryDate = new Date();
-		expiryDate.setDate(expiryDate.getDate() + 30);
+		expiryDate.setDate(expiryDate.getDate() + 60);
 
 		await this.RefreshTokenModel.create({ token, userId, expiryDate });
 	}

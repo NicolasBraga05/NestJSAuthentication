@@ -1,4 +1,4 @@
-import { IsEmail, IsString, Matches, MaxLength, MinLength } from 'class-validator';
+import { IsEmail, IsOptional, IsString, Matches, MaxLength, MinLength } from 'class-validator';
 import { IUserTable } from '../interfaces/user.interface';
 import { ApiProperty } from '@nestjs/swagger';
 
@@ -13,6 +13,7 @@ export class UpdateUserDto implements Partial<IUserTable> {
 	@IsEmail()
 	user_email?: string;
 
+	@IsOptional()
 	@IsString()
 	@MinLength(6)
 	@Matches(/^(?=.*[0-9])/, { message: 'Password must contain at lesat one number!' })
