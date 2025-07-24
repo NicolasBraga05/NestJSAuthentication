@@ -3,9 +3,11 @@ import { AuthService } from './auth.service';
 import { SignUpDto } from './dtos/signup-dto';
 import { LoginDto } from './dtos/login-dto';
 import { RefreshTokenDto } from './dtos/refreshToken-dto';
-import { ApiBearerAuth, ApiBody, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
 import { AuthGuard } from 'src/guards/auth.guard';
 import { UpdateUserDto } from './dtos/updateUser-dto';
+import { ParseMongoIdPipe } from 'src/common/pipes/parse-mongo-id.pipe';
+import IResponseHttpApi from './interfaces/responseObject.interface';
 
 @Controller('auth')
 export class AuthController {
@@ -64,6 +66,34 @@ export class AuthController {
 	})
 	async update(@Req() req, @Body() requestupdateUser: UpdateUserDto) {
 		return this.authService.update(req?.userId, requestupdateUser);
+	}
+
+	@Delete(':_id')
+	@ApiBearerAuth()
+	@UseGuards(AuthGuard)
+	@ApiOperation({
+		summary: 'Remover usuário',
+		description: 'Endpoint para remover um usuário. Requer autenticação e permissão de administrador.',
+	})
+	@ApiParam({ name: '_id', type: String, description: 'ID do usuário a ser removido' })
+	@ApiResponse({ status: 200, description: 'Usuário removido com sucesso' })
+	@ApiResponse({
+		status: 401,
+		description: 'Não autorizado',
+		schema: { example: { status: 401, message: { errors: ['Token inválido'] } } },
+	})
+	@ApiResponse({
+		status: 403,
+		description: 'Acesso negado',
+		schema: { example: { status: 403, message: { errors: ['Acesso negado'] } } },
+	})
+	@ApiResponse({
+		status: 404,
+		description: 'Usuário não encontrado',
+		schema: { example: { status: 404, message: { errors: ['User not found!'] } } },
+	})
+	async removeUser(@Param('_id', ParseMongoIdPipe) id: string): Promise<IResponseHttpApi<object>> {
+		return await this.authService.delete(id);
 	}
 
 	@Post('refresh')

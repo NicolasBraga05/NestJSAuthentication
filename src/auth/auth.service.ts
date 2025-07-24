@@ -152,6 +152,29 @@ export class AuthService {
 		};
 	}
 
+	async delete(userId: string): Promise<IResponseHttpApi<object>> {
+		const deletedUser = await this.UserModel.findByIdAndDelete(userId);
+
+		if (!deletedUser) {
+			throw new HttpException(
+				{
+					status: HttpStatus.NOT_FOUND,
+					message: {
+						errors: ['User not found!'],
+					},
+				},
+				HttpStatus.NOT_FOUND,
+			);
+		}
+
+		return {
+			status: HttpStatus.OK,
+			message: {
+				success: 'User deleted with success!',
+			},
+		};
+	}
+
 	async refreshTokens(userId: number, refreshToken: string): Promise<object> {
 		const token = await this.RefreshTokenModel.findOneAndDelete({
 			token: refreshToken,
