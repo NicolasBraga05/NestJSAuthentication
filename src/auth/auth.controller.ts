@@ -45,6 +45,48 @@ export class AuthController {
 		return this.authService.login(userCredentials);
 	}
 
+	@Get('user')
+	@ApiBearerAuth()
+	@UseGuards(AuthGuard)
+	@ApiOperation({
+		summary: 'Busca o perfil do usuário pelo o token',
+		description: 'Endpoint para buscar o perfil do usuário autenticado pelo token.',
+	})
+	@ApiResponse({ status: 200, description: 'Perfil do usuário resgatado com sucesso' })
+	@ApiResponse({
+		status: 400,
+		description: 'Erro na requisição',
+	})
+	@ApiResponse({
+		status: 401,
+		description: 'Não autorizado',
+		schema: { example: { status: 401, message: { errors: ['Token inválido'] } } },
+	})
+	async getUser(@Req() req) {
+		return this.authService.getUser(req?.userId);
+	}
+
+	@Get('user/list')
+	@ApiBearerAuth()
+	@UseGuards(AuthGuard)
+	@ApiOperation({
+		summary: 'Busca todos os perfis dos usuários.',
+		description: 'Endpoint para buscar os perfis dos usuários.',
+	})
+	@ApiResponse({ status: 200, description: 'Perfis dos usuários resgatados com sucesso' })
+	@ApiResponse({
+		status: 400,
+		description: 'Erro na requisição',
+	})
+	@ApiResponse({
+		status: 401,
+		description: 'Não autorizado',
+		schema: { example: { status: 401, message: { errors: ['Token inválido'] } } },
+	})
+	async getAllUsers(@Req() req) {
+		return this.authService.getAllUsers(req?.userId);
+	}
+
 	@Put('user')
 	@ApiBearerAuth()
 	@UseGuards(AuthGuard)

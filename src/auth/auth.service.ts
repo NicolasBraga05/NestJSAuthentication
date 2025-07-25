@@ -122,6 +122,54 @@ export class AuthService {
 		};
 	}
 
+	async getUser(userId: number): Promise<IResponseHttpApi<object>> {
+		const user = await this.UserModel.findById(userId).select('-user_password');
+
+		if (!user) {
+			throw new HttpException(
+				{
+					status: HttpStatus.NOT_FOUND,
+					message: {
+						errors: ['User not found!'],
+					},
+				},
+				HttpStatus.NOT_FOUND,
+			);
+		}
+
+		return {
+			status: HttpStatus.OK,
+			message: {
+				success: 'User profile retrieved successfully',
+			},
+			data: user,
+		};
+	}
+
+	async getAllUsers(userId: number): Promise<IResponseHttpApi<object>> {
+		const users = await this.UserModel.find().select('-user_password');
+
+		if (!users) {
+			throw new HttpException(
+				{
+					status: HttpStatus.NOT_FOUND,
+					message: {
+						errors: ['User not found!'],
+					},
+				},
+				HttpStatus.NOT_FOUND,
+			);
+		}
+
+		return {
+			status: HttpStatus.OK,
+			message: {
+				success: 'User profile retrieved successfully',
+			},
+			data: users,
+		};
+	}
+
 	async update(userId: number, updateAuthDto: UpdateUserDto): Promise<IResponseHttpApi<object>> {
 		const user = await this.UserModel.findById(userId);
 
