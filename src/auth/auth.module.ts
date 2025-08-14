@@ -5,6 +5,7 @@ import { Mongoose } from 'mongoose';
 import { MongooseModule } from '@nestjs/mongoose';
 import { User, UserSchema } from './schemas/user.schema';
 import { RefreshToken, RefreshTokenSchema } from './schemas/refresh-token.schema';
+import { Role, RoleSchema } from './schemas/roles.schema';
 
 @Module({
 	imports: [
@@ -16,6 +17,10 @@ import { RefreshToken, RefreshTokenSchema } from './schemas/refresh-token.schema
 			{
 				name: RefreshToken.name,
 				schema: RefreshTokenSchema,
+			},
+			{
+				name: Role.name,
+				schema: RoleSchema,
 			},
 		]),
 	],

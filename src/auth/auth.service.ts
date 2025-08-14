@@ -10,12 +10,14 @@ import { JwtService } from '@nestjs/jwt';
 import { RefreshToken } from './schemas/refresh-token.schema';
 import { v4 as uuidv4 } from 'uuid';
 import { UpdateUserDto } from './dtos/updateUser-dto';
+import { Role, RoleDocument } from './schemas/roles.schema';
 
 @Injectable()
 export class AuthService {
 	constructor(
 		@InjectModel(User.name) private UserModel: Model<User>,
 		@InjectModel(RefreshToken.name) private RefreshTokenModel: Model<RefreshToken>,
+		@InjectModel(Role.name) private RoleModel: Model<RoleDocument>,
 		private jwtService: JwtService,
 	) {}
 
@@ -258,19 +260,104 @@ export class AuthService {
 		await this.RefreshTokenModel.create({ token, userId, expiryDate });
 	}
 
-	/* findAll() {
-		return `This action returns all auth`;
+	async validateToken(token: string): Promise<IResponseHttpApi<object>> {
+		if (!token) {
+			throw new HttpException(
+				{
+					status: HttpStatus.NOT_FOUND,
+					message: {
+						errors: ['Invalid or expired token!'],
+					},
+				},
+				HttpStatus.NOT_FOUND,
+			);
+		}
+
+		if (token.startsWith('Bearer ')) {
+			token = token.slice(7);
+		}
+
+		const decoded = this.jwtService.verify(token);
+
+		return {
+			status: HttpStatus.OK,
+			data: {
+				decoded,
+			},
+		};
 	}
 
-	findOne(id: number) {
-		return `This action returns a #${id} auth`;
-	}
+	async ValidateTokenAdmin(token: string, requiredRoleLevel: number): Promise<IResponseHttpApi<object>> {
+		if (!token || !token.startsWith('Bearer ')) {
+			throw new HttpException(
+				{
+					status: HttpStatus.UNAUTHORIZED,
+				},
+				HttpStatus.UNAUTHORIZED,
+			);
+		}
 
-	update(id: number, updateAuthDto: UpdateAuthDto) {
-		return `This action updates a #${id} auth`;
-	}
+		token = token.slice(7);
 
-	remove(id: number) {
-		return `This action removes a #${id} auth`;
-	} */
+		const decoded = this.jwtService.verify(token);
+
+		if (!decoded || !decoded.user_id) {
+			throw new HttpException(
+				{
+					status: HttpStatus.UNAUTHORIZED,
+					message: {
+						errors: ['Invalid or expired token!'],
+					},
+				},
+				HttpStatus.UNAUTHORIZED,
+			);
+		}
+
+		const user = await this.UserModel.findById(decoded.user_id).exec();
+
+		if (!user) {
+			throw new HttpException(
+				{
+					status: HttpStatus.NOT_FOUND,
+					message: {
+						errors: ['User not found!'],
+					},
+				},
+				HttpStatus.NOT_FOUND,
+			);
+		}
+
+		const role = await this.RoleModel.findOne({ role_level: user.user_role }).exec();
+
+		if (!role) {
+			throw new HttpException(
+				{
+					status: HttpStatus.NOT_FOUND,
+					message: {
+						errors: ['Role not found!'],
+					},
+				},
+				HttpStatus.NOT_FOUND,
+			);
+		}
+
+		if (role.role_level > requiredRoleLevel) {
+			throw new HttpException(
+				{
+					status: HttpStatus.UNAUTHORIZED,
+					message: {
+						errors: ['Insufficient permissions!'],
+					},
+				},
+				HttpStatus.UNAUTHORIZED,
+			);
+		}
+
+		return {
+			status: HttpStatus.OK,
+			message: {
+				success: 'Access allowed',
+			},
+		};
+	}
 }

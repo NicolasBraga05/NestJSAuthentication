@@ -4,11 +4,11 @@ import { SignUpDto } from './dtos/signup-dto';
 import { LoginDto } from './dtos/login-dto';
 import { RefreshTokenDto } from './dtos/refreshToken-dto';
 import { ApiBearerAuth, ApiBody, ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
-import { AuthGuard } from 'src/guards/auth.guard';
 import { UpdateUserDto } from './dtos/updateUser-dto';
 import { ParseMongoIdPipe } from 'src/common/pipes/parse-mongo-id.pipe';
 import IResponseHttpApi from './interfaces/responseObject.interface';
-
+import Roles from './middlewares/authenticator.role';
+import RolesGuardAuth from './middlewares/authenticator.meddleware';
 @Controller('auth')
 export class AuthController {
 	constructor(private readonly authService: AuthService) {}
@@ -47,7 +47,8 @@ export class AuthController {
 
 	@Get('user')
 	@ApiBearerAuth()
-	@UseGuards(AuthGuard)
+	@UseGuards(RolesGuardAuth)
+	@Roles(3)
 	@ApiOperation({
 		summary: 'Busca o perfil do usuário pelo o token',
 		description: 'Endpoint para buscar o perfil do usuário autenticado pelo token.',
@@ -63,12 +64,13 @@ export class AuthController {
 		schema: { example: { status: 401, message: { errors: ['Token inválido'] } } },
 	})
 	async getUser(@Req() req) {
-		return this.authService.getUser(req?.userId);
+		return this.authService.getUser(req?.user?.id);
 	}
 
 	@Get('user/list')
 	@ApiBearerAuth()
-	@UseGuards(AuthGuard)
+	@UseGuards(RolesGuardAuth)
+	@Roles(1)
 	@ApiOperation({
 		summary: 'Busca todos os perfis dos usuários.',
 		description: 'Endpoint para buscar os perfis dos usuários.',
@@ -84,12 +86,13 @@ export class AuthController {
 		schema: { example: { status: 401, message: { errors: ['Token inválido'] } } },
 	})
 	async getAllUsers(@Req() req) {
-		return this.authService.getAllUsers(req?.userId);
+		return this.authService.getAllUsers(req?.user.id);
 	}
 
 	@Put('user')
 	@ApiBearerAuth()
-	@UseGuards(AuthGuard)
+	@UseGuards(RolesGuardAuth)
+	@Roles(3)
 	@ApiOperation({
 		summary: 'Atualizar perfil do usuário',
 		description: 'Endpoint para atualizar o perfil do usuário autenticado.',
@@ -107,12 +110,13 @@ export class AuthController {
 		schema: { example: { status: 401, message: { errors: ['Token inválido'] } } },
 	})
 	async update(@Req() req, @Body() requestupdateUser: UpdateUserDto) {
-		return this.authService.update(req?.userId, requestupdateUser);
+		return this.authService.update(req?.user.id, requestupdateUser);
 	}
 
 	@Delete(':_id')
 	@ApiBearerAuth()
-	@UseGuards(AuthGuard)
+	@UseGuards(RolesGuardAuth)
+	@Roles(1)
 	@ApiOperation({
 		summary: 'Remover usuário',
 		description: 'Endpoint para remover um usuário. Requer autenticação e permissão de administrador.',
@@ -140,7 +144,7 @@ export class AuthController {
 
 	@Post('refresh')
 	@ApiBearerAuth()
-	@UseGuards(AuthGuard)
+	@UseGuards(RolesGuardAuth)
 	@ApiOperation({
 		summary: 'Gera um refresh token para o usuário',
 		description: 'Endpoint para gerar um refresh token do usuário autenticado.',
@@ -158,30 +162,6 @@ export class AuthController {
 		schema: { example: { status: 401, message: { errors: ['Token inválido'] } } },
 	})
 	async refreshTokens(@Req() req, @Body() refreshTokenDto: RefreshTokenDto) {
-		return this.authService.refreshTokens(req?.userId, refreshTokenDto.refreshToken);
+		return this.authService.refreshTokens(req?.user.id, refreshTokenDto.refreshToken);
 	}
-
-	/* 
-	@UseGuards(AuthGuard)
-	@Get()
-	findAll(@Req() req) {
-		return this.authService.findAll(userId: req.userId);
-	}
-
-	@Get('')
-	findOne(@Req() req) {
-		return this.authService.findOne(userId: req.userId);
-	}
-		
-	@UseGuards(AuthGuard)
-	@Patch('')
-	update(@Req() req, @Body() updateUserDto: UpdateAuthDto) {
-		return this.authService.update(userId: req.userId, updateUserDto);
-	}
-
-	@UseGuards(AuthGuard)
-	@Delete(':id')
-	remove(@Param('id') id: string) {
-		return this.authService.remove(+id);
-	} */
 }
