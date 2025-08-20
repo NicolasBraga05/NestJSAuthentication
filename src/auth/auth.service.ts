@@ -156,7 +156,7 @@ export class AuthService {
 				{
 					status: HttpStatus.NOT_FOUND,
 					message: {
-						errors: ['User not found!'],
+						errors: ['Users not found!'],
 					},
 				},
 				HttpStatus.NOT_FOUND,
